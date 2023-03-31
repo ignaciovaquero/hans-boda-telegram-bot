@@ -1,0 +1,4 @@
+boto3~=1.26.103
+python-telegram-bot~=20.2
+black~=23.3.0
+pytype~=2023.3.13
