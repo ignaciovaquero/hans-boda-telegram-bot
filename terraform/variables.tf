@@ -15,12 +15,6 @@ variable "aws_region" {
   description = "AWS Region for deploying resources"
 }
 
-variable "vpc_id" {
-  type        = string
-  description = "VPC ID for the ECS cluster and security groups"
-  default     = "vpc-01eced550e1f444ba"
-}
-
 variable "guests_table_name" {
   type        = string
   description = "The name of the DynamoDB table that holds the guest information"

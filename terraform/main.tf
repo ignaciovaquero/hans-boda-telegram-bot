@@ -2,33 +2,10 @@ locals {
   default_security_group_name = "default"
   iam_lambda_role_name        = "hans-boda-telegram-bot"
   iam_lambda_policy_name      = "hans-boda-lambda-telegram-bot-policy"
-  lambda_timeout_ms           = 5000
+  lambda_timeout              = 10
   tags = {
     Application = "Hans Boda"
     Environment = "prod"
-  }
-}
-
-data "aws_vpc" "main" {
-  id = var.vpc_id
-}
-
-data "aws_subnets" "vpc_subnets" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.main.id]
-  }
-}
-
-data "aws_security_groups" "default_security_group" {
-  filter {
-    name   = "group-name"
-    values = [local.default_security_group_name]
-  }
-
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.main.id]
   }
 }
 
@@ -71,7 +48,7 @@ data "aws_iam_policy_document" "lambda_policy_document" {
       "dynamodb:GetShardIterator",
       "dynamodb:ListStreams"
     ]
-    resources = ["arn:aws:dynamodb:${var.aws_region}:106260645150:table/${var.guests_table_name}"]
+    resources = ["arn:aws:dynamodb:${var.aws_region}:106260645150:table/${var.guests_table_name}/stream/*"]
   }
 }
 
@@ -86,15 +63,9 @@ resource "aws_iam_role_policy_attachment" "lambda_attach_policy" {
   policy_arn = aws_iam_policy.lambda_policy.arn
 }
 
-data "aws_iam_policy" "AWSLambdaVPCAccessExecutionRole" {
-  name = "AWSLambdaVPCAccessExecutionRole"
+data "aws_dynamodb_table" "hans_boda_table" {
+  name = var.guests_table_name
 }
-
-resource "aws_iam_role_policy_attachment" "lambda_attach_vpc_access_execution_role" {
-  role       = aws_iam_role.lambda_role.name
-  policy_arn = data.aws_iam_policy.AWSLambdaVPCAccessExecutionRole.arn
-}
-
 
 module "lambda_function" {
   source  = "terraform-aws-modules/lambda/aws"
@@ -110,8 +81,7 @@ module "lambda_function" {
   lambda_role = aws_iam_role.lambda_role.arn
   create_role = false
 
-  vpc_subnet_ids         = data.aws_subnets.vpc_subnets.ids
-  vpc_security_group_ids = data.aws_security_groups.default_security_group.ids
+  timeout = local.lambda_timeout
 
   ephemeral_storage_size = null
 
@@ -120,6 +90,22 @@ module "lambda_function" {
   environment_variables = {
     "HANS_BODA_TELEGRAM_TOKEN" = var.telegram_token
     "HANS_BODA_DEBUG"          = var.debug ? "true" : ""
+  }
+
+  event_source_mapping = {
+    dynamodb = {
+      event_source_arn                   = data.aws_dynamodb_table.hans_boda_table.stream_arn
+      starting_position                  = "LATEST"
+      batch_size                         = 1
+      maximum_batching_window_in_seconds = 300
+      filter_criteria = [
+        {
+          pattern = jsonencode({
+            eventName : ["INSERT", "MODIFY"]
+          })
+        }
+      ]
+    }
   }
 
   tags                 = local.tags
