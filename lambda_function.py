@@ -13,7 +13,7 @@ logger.setLevel(
 
 
 TELEGRAM_TOKEN: str = os.getenv(f"{ENV_PREFIX}_TELEGRAM_TOKEN", "")
-TELEGRAM_CHAT_ID: str = os.getenv(f"{ENV_PREFIX}_TELEGRAM_CHAT_ID", "-950108034")
+TELEGRAM_CHAT_ID: str = os.getenv(f"{ENV_PREFIX}_TELEGRAM_CHAT_ID", "-1001555706515")
 
 
 def _check_python_version(version: tuple[int, int]) -> None:
