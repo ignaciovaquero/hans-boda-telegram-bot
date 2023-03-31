@@ -81,7 +81,7 @@ async def main(event):
                 f"{message}"
                 f"- El invitado indica que{'' if allergy else ' no'} tiene{' las siguientes' if allergy else ''} alergias{f': {allergy_text}' if allergy else '.'}\n"
                 f"- El invitado indica que{'' if bus else ' no'} cogerá el autobús a la ida.\n"
-                f"""- El invitado indica que{"" if bus_back else " no"} cogerá el autobús de vuelta{f" a la{' 01:00' if not bus_time else 's 04:00'}" if bus_back else ""}.\n\n\n"""
+                f"""- El invitado indica que{"" if bus_back else " no"} cogerá el autobús de vuelta{f" a la{' 01:30' if not bus_time else 's 04:30'}" if bus_back else ""}.\n\n\n"""
             )
         tasks.append(asyncio.create_task(send_telegram(message=message)))
 
