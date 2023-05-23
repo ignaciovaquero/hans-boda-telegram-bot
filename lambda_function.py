@@ -69,6 +69,8 @@ async def main(event):
         bus: bool = record["dynamodb"]["NewImage"]["Bus"]["BOOL"]
         bus_back: bool = record["dynamodb"]["NewImage"]["BusBack"]["BOOL"]
         bus_time: int = int(record["dynamodb"]["NewImage"]["BusTime"]["N"])
+        bus_location: str = record["dynamodb"]["NewImage"]["BusLocation"]["S"]
+        bus_back_location: str = record["dynamodb"]["NewImage"]["BusBackLocation"]["S"]
         logger.debug("Creating message for guest %s %s", name, last_name)
         message: str = (
             f"{action_message}\n\n"
@@ -80,8 +82,8 @@ async def main(event):
             message = (
                 f"{message}"
                 f"- El invitado indica que{'' if allergy else ' no'} tiene{' las siguientes' if allergy else ''} alergias{f': {allergy_text}' if allergy else '.'}\n"
-                f"- El invitado indica que{'' if bus else ' no'} cogerá el autobús a la ida.\n"
-                f"""- El invitado indica que{"" if bus_back else " no"} cogerá el autobús de vuelta{f" a la{' 01:30' if not bus_time else 's 04:30'}" if bus_back else ""}.\n\n\n"""
+                f"- El invitado indica que{'' if bus else ' no'} cogerá el autobús a la ida{f' desde {bus_location}' if bus else ''}.\n"
+                f"""- El invitado indica que{"" if bus_back else " no"} cogerá el autobús de vuelta{f" a la{' 01:30' if not bus_time else 's 04:30'}" if bus_back else ""}{f' desde {bus_back_location}' if bus_back else ''}.\n\n\n"""
             )
         tasks.append(asyncio.create_task(send_telegram(message=message)))
 
